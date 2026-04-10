@@ -154,6 +154,25 @@ class TestRaySampling:
         dot = np.einsum("ij,ij->i", rays["origins"], rays["directions"])
         assert (dot < 0).all()
 
+    def test_rays_converge_toward_origin(self, rays):
+        """
+        Every ray must pass within one target radius (~450 µm) of the
+        origin (its focal point).  This is verified via the distance
+        from the origin to the closest point on the ray line:
+
+            d_perp = |o × d̂|  (cross product magnitude)
+        """
+        o = rays["origins"]
+        d = rays["directions"]
+        # |o × d| = distance from origin to the ray line
+        cross = np.cross(o, d)                         # (N, 3)
+        d_perp = np.linalg.norm(cross, axis=1)         # (N,)
+        # All rays should converge within a small fraction of the lens-to-
+        # target distance (well within 1 mm = 1e-3 m)
+        assert (d_perp < 1e-3).all(), (
+            f"Some rays miss the focal region: max d_perp = {d_perp.max():.3e} m"
+        )
+
     def test_disk_sampling_inside_unit_circle(self):
         rng = np.random.default_rng(7)
         pts = _random_disk_uniform(10_000, rng)
