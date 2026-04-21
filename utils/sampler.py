@@ -288,7 +288,7 @@ def impact_simulated(num_total_rays, target_radius, target_center):
         
         beam_row = beam_df.iloc[i]
         
-        # 4. On lance le calcul : beam_hit trouvera 't1', 't2' et 'l1' !
+        # 4. On lance le calcul : beam_hit trouvera 't1', 't2' et 'l1' 
         res = beam_hit(beam_row, n_rays, target_radius, target_center)
         
         if not res.empty:
