@@ -268,27 +268,28 @@ def get_final_beam_geometry(df_in):
     return df_final
 
 def impact_simulated(num_total_rays, target_radius, target_center):
-    # 1. On récupère la géométrie brute (AVEC les parenthèses !)
-    # Cette DF contient encore les vecteurs groupés [x, y, z] dont sampler a besoin
+    'Monte Carlo simulation which attribute a nomber of rays to a beam and determines the energy of each ray'
+
     beam_df = geometry.get_omega60_dataframe() 
     
-    # 2. On ajoute l1, l2 et energy ici car la simulation en a besoin pour beam_hit
+    
     beam_df['l1'] = 0.28
     beam_df['l2'] = 0.28
     
-    # 3. Calcul des probabilités et tirage
+    # Monte Carlo simulation which attributes the number of beams with a probability depending on energy
     energies = beam_df['energy'].values
     probs = energies / np.sum(energies)
     selected_indices = np.random.choice(len(beam_df), size=num_total_rays, p=probs)
     counts = np.bincount(selected_indices, minlength=len(beam_df))
     
+    #Then, we wach all the rays and we determine their energy to prepare a weight for the histogram
     impact_list = []
     for i, n_rays in enumerate(counts):
         if n_rays == 0: continue
         
         beam_row = beam_df.iloc[i]
         
-        # 4. On lance le calcul : beam_hit trouvera 't1', 't2' et 'l1' 
+        # the beam_hit fonction enables us to have all the informations wanted conserning one beam 
         res = beam_hit(beam_row, n_rays, target_radius, target_center)
         
         if not res.empty:

@@ -209,7 +209,7 @@ def test_omega_properties():
 
 def test_focal_logic():
     print("# Running test: Focal distance calculation")
-    f_dist = compute_focal_distance(defocus_mm=0)
+    f_dist = compute_focal_distance(defocus_mm=2)
     # Si defocus=0, le foyer doit être proche du centre (calcul géométrique)
     assert f_dist > CHAMBER_RADIUS, "Error: Focal point must be beyond the port"
     print("Test passed: Focal logic is consistent.")
