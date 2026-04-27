@@ -1,0 +1,13 @@
+# --- Python & Cache ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- Environnement Virtuel ---
+test.venv/
+
+# --- IDE (VS Code) ---
+.vscode/
