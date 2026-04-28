@@ -179,7 +179,6 @@ def beam_hit(beam, num_samples, radius, center_target):
             })
             
     return pd.DataFrame(data)
-    
 
 def expand_impacts(df_impacts):
     """
@@ -363,6 +362,38 @@ def preparar_dataframe_impacts(impact_df):
     
 
 # --- Section des Tests ---
+def test_energy_conservation():
+    """
+    Test to ensure no 'magic energy' is created during the simulation.
+    The sum of ray weights must be <= total laser energy.
+    """
+    # 1. Paramètres de test
+    N_RAYS = 10000
+    R_TARGET = 0.001
+    CENTER = np.array([0, 0, 0])
+    
+    # 2. Récupération de l'énergie de référence
+    beam_df = geometry.get_omega60_dataframe()
+    total_omega_energy = beam_df['energy'].sum()
+    
+    # 3. Exécution de la simulation
+    df_results = impact_simulated(N_RAYS, R_TARGET, CENTER)
+    
+    # 4. Calcul de l'énergie totale déposée sur la cible
+    total_deposited_energy = df_results['energy_weight'].sum()
+    
+    # --- ASSERTIONS ---
+    
+    # A. L'énergie déposée ne peut PAS être supérieure à l'énergie totale du laser
+    # On ajoute une petite tolérance pour les erreurs d'arrondi (floating point)
+    assert total_deposited_energy <= total_omega_energy + 1e-5, \
+        f"Magic energy detected! Deposited: {total_deposited_energy}J > Total: {total_omega_energy}J"
+    
+    # B. L'énergie déposée doit être positive (test de bon sens)
+    assert total_deposited_energy >= 0, "Negative energy detected!"
+
+    print(f"\n[Test Passed] Total deposited: {total_deposited_energy:.2f} J / {total_omega_energy:.2f} J")
+
 
 def test_ray_intersection():
     """Vérifie si le calcul d'intersection avec la sphère est exact."""
@@ -430,6 +461,7 @@ if __name__ == "__main__":
         test_ray_intersection()
         test_sampling_boundaries()
         test_full_simulation_run()
+        test_energy_conservation()
         print("\n[SUCCESS] All critical tests passed.")
     except AssertionError as e:
         print(f"\n[FAILURE] A test failed: {e}")

@@ -4,6 +4,7 @@ import math
 import pandas as pd
 from helpers import coord
 
+
 #Metadata
 
 info = argparse.Namespace(
@@ -132,7 +133,7 @@ def assign_beam_focus(beam_row):
     Helper function to apply a standardized defocus to a specific beam port.
     A 2.0mm defocus is typically used to over-fill the target and reduce intensity peaks.
     """
-    f_dist = compute_focal_distance(defocus_mm=2) 
+    f_dist = compute_focal_distance(defocus_mm=10) 
     return compute_focus_position(beam_row["center"], f_dist)
 
 def get_omega60_dataframe():
@@ -218,6 +219,7 @@ def test_focal_logic():
 # Runing the code 
 # --- Main Guard ---
 if __name__ == "__main__":
+
     print(f"--- Running tests for module: {info.name} ---")
     test_omega_properties()
     test_focal_logic()
