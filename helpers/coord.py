@@ -35,6 +35,36 @@ def cart_to_sph(x, y, z):
     return np.array([r, theta, phi])
 
 # --- Testing ---
+def test_random():
+    print("# Running test: Random Spherical <-> Cartesian consistency")
+    num_samples = 10000
+    
+    # 1. Génération de points aléatoires dans un cube [-1, 1]
+    sample = 2 * np.random.random_sample(size=(num_samples, 3)) - 1
+    
+    # 2. Normalisation pour les placer sur la sphère unité (r=1)
+    # On s'assure que r=1 pour simplifier la vérification
+    sample = sample / np.linalg.norm(sample, axis=1)[:, np.newaxis]
+    
+    x_in, y_in, z_in = sample[:, 0], sample[:, 1], sample[:, 2]
+
+    # 3. Test : Cartésien -> Sphérique
+    # Ta fonction renvoie [r, theta, phi]
+    r, theta, phi = cart_to_sph(x_in, y_in, z_in)
+    
+    # 4. Test : Sphérique -> Cartésien
+    # Ta fonction renvoie [x, y, z], on transpose (.T) pour retrouver la forme (N, 3)
+    reconstructed_cart = sph_to_cart(r, theta, phi).T
+
+    # 5. Comparaison
+    np.testing.assert_allclose(reconstructed_cart, sample, atol=1e-7)
+    
+    print(f"Random test passed with {num_samples} samples!")
+
+# Pour l'exécuter si tu es dans le module coord.py :
+if __name__ == "__main__":
+    test_random()
+
 def test_conversion():
     print("# Running test: Spherical <-> Cartesian consistency")
     
@@ -57,6 +87,7 @@ if __name__ == "__main__":
     # Correction : info.name au lieu de info['name'] + alignement corrigé
     print(f"--- Running tests for module: {info.name} ---")
     test_conversion()
+    test_random()
     print("All tests successful.")
 else:
     print(write_disclaimer(info))
