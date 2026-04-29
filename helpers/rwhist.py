@@ -117,6 +117,45 @@ class SphereSectors():
     ax.scatter(x, y, z, **kwargs)
 
     return fig, ax
+  
+def compute_histogram(hits, sectors):
+    """
+    Calcule l'histogramme de densité d'énergie déposée sur la sphère.
+    Utilise l'objet SphereSectors pour le partitionnement et le calcul des aires.
+    """
+    # 1. Préparation des données physiques
+    # On multiplie l'énergie par le cosinus d'incidence (Loi de Lambert)
+    theta = hits['lat_rad'].values
+    phi = hits['long_rad'].values
+    weights = (hits['energy_weight'] * np.abs(hits['cs'])).values
+
+    # 2. Histogramme 2D (Calcul brut par secteur)
+    # On utilise les 'edges' (bords) définis dans ton objet sectors
+    hs_raw, _, _ = np.histogram2d(
+        theta, 
+        phi, 
+        bins=[sectors.theta_edges, sectors.phi_edges], 
+        weights=weights
+    )
+
+    # 3. Calcul de la densité (Energie par unité de surface)
+    # ATTENTION : on utilise sectors.areas (avec un 's') qui est le tableau 2D
+    # calculé automatiquement par le module rwhist
+    hs_density = hs_raw / sectors.areas
+
+    # 4. Normalisation (0 à 1) pour le tracé de la carte de chaleur
+    h_min, h_max = np.min(hs_density), np.max(hs_density)
+    hs_norm = (hs_density - h_min) / (h_max - h_min) if h_max > h_min else hs_density
+
+    # 5. Création du DataFrame de résultat (Aplatissement pour ARWEN/Plotly)
+    return pd.DataFrame({
+        'theta': sectors.mtheta.ravel(),
+        'phi': sectors.mphi.ravel(),
+        'area': sectors.areas.ravel(),
+        'energy_raw': hs_raw.ravel(),
+        'intensity': hs_density.ravel(),
+        'intensity_norm': hs_norm.ravel()
+    })
 
 def write_histogram( theta_edges, phi_edges, hs, filename ):
 
