@@ -128,69 +128,92 @@ def compute_focus_position(port_center, f_window):
     focal_point_pos = port_center - (propagation_vector * f_window)
     return focal_point_pos
 
-def assign_beam_focus(beam_row):
+def assign_beam_focus(beam_row, defocus_value=10.0):
     """
-    Helper function to apply a standardized defocus to a specific beam port.
-    A 2.0mm defocus is typically used to over-fill the target and reduce intensity peaks.
+    Helper function to apply a specific defocus to a beam row from the expanded DataFrame.
+    It reads 'xc', 'yc', 'zc' and returns the new focal coordinates 'fx', 'fy', 'fz'.
     """
-    f_dist = compute_focal_distance(defocus_mm=10) 
-    return compute_focus_position(beam_row["center"], f_dist)
+    # 1. Reconstitution du vecteur centre à partir des colonnes éclatées
+    center_pos = np.array([beam_row['xc'], beam_row['yc'], beam_row['zc']])
+    
+    # 2. Calcul de la distance focale (Thalès)
+    f_dist = compute_focal_distance(defocus_mm=defocus_value) 
+    
+    # 3. Calcul de la position 3D du focus
+    focus_pos = compute_focus_position(center_pos, f_dist)
+    
+    # 4. Retourne les coordonnées sous forme de série pour mettre à jour fx, fy, fz
+    return pd.Series({
+        'fx': focus_pos[0],
+        'fy': focus_pos[1],
+        'fz': focus_pos[2]
+    })
 
 def get_omega60_dataframe():
-    DEFAULT_ENERGY = 500.0     # Default beam energy [Joules]
-    WAVELENGTH = 351e-9  
+    DEFAULT_ENERGY = 500.0     # Énergie par défaut [Joules]
+    WAVELENGTH = 351e-9        # Longueur d'onde [m]
+    L1_VAL = 0.28              # Largeur standard de la fenêtre OMEGA [m]
+    L2_VAL = 0.28              # Hauteur standard de la fenêtre OMEGA [m]
 
     omega_config = generare_Truncated_icosahedron()
     all_data = []
     beam_count = 1
 
     for r, theta, phi in omega_config:
-
-        x, y, z = coord.sph_to_cart(CHAMBER_RADIUS, theta, phi) # laser ports are on the chamber
+        # 1. Calculs de base et coordonnées sphériques
         theta_rad = theta
-        phi_rad = phi % 60 # Note: Gardé tel quel selon ton code
+        phi_rad = phi % (2 * np.pi) 
 
+        # Vecteur normal unitaire (nx, ny, nz)
         nx = np.sin(theta_rad) * np.cos(phi_rad)
         ny = np.sin(theta_rad) * np.sin(phi_rad)
         nz = np.cos(theta_rad)
         normal_u = np.array([nx, ny, nz])
 
+        # Centre du port sur la chambre (xc, yc, zc)
         center = normal_u * CHAMBER_RADIUS
 
-        # --- 3. Local Tangent Basis Calculation (t1, t2) ---
+        # 2. Calcul de la base locale (t1, t2)
         t1 = np.array([-np.sin(phi_rad), np.cos(phi_rad), 0.0]) 
             
-        # Singularity handling at the poles
+        # Gestion de la singularité aux pôles
         if np.linalg.norm(t1) < 1e-6: 
             t1 = np.array([1, 0, 0])
         t1 /= np.linalg.norm(t1)
             
         t2 = np.cross(normal_u, t1)
         t2 /= np.linalg.norm(t2)
-        
-        # --- CALCUL DU FOCUS INTÉGRÉ ---
-        # On utilise tes fonctions pour un defocus standard de 2.0mm
+
+        # 3. Calcul du focus (Thalès + Defocus de 2.0mm par défaut)
         f_dist = compute_focal_distance(defocus_mm=2.0) 
         focus = compute_focus_position(center, f_dist) 
         
+        # 4. Construction du dictionnaire avec les colonnes l1 et l2 ajoutées
         all_data.append({
-                'port': f'OMEGA_J{beam_count:02d}',
-                'subwindow': 0,
+                'id': f'OMEGA_J{beam_count:02d}',
                 'LAT_rad': theta_rad,
                 'LONG_rad': phi_rad,
-                'color': 'blue' if theta < math.pi/2 else 'red',
                 'energy': DEFAULT_ENERGY,
                 'wavelength': WAVELENGTH,
-                'center': center,
-                'normal': normal_u,
-                't1': t1,
-                't2': t2,
-                'beam_radius': BEAM_RADIUS,
-                'focus': focus  # La variable n'est plus None
+                # Ajout de l1 et l2 après wavelength
+                'l1': L1_VAL, 
+                'l2': L2_VAL,
+                # Centre
+                'xc': center[0], 'yc': center[1], 'zc': center[2],
+                # Normale
+                'nx': nx, 'ny': ny, 'nz': nz,
+                # Vecteur tangent t1
+                't1x': t1[0], 't1y': t1[1], 't1z': t1[2],
+                # Vecteur tangent t2
+                't2x': t2[0], 't2y': t2[1], 't2z': t2[2],
+                # Rayon et Focus
+                'R': BEAM_RADIUS,
+                'fx': focus[0], 'fy': focus[1], 'fz': focus[2]
             })
         beam_count += 1
 
     return pd.DataFrame(all_data)
+
 
 #TESTING
 def test_omega_properties():
