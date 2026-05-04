@@ -8,6 +8,16 @@ from helpers import sampler
 import matplotlib.pyplot as plt
 import pandas as pd
 
+info = {
+  'name': 'collision', 
+  'desc': 'Module to read and write laser beam geometry parameters',
+  'author': 'Clara Jourdan',
+  'email': 'clara.jourdan@imt-atlantique.net',
+  'year': 2026,
+  'version': [ 1, 0, 1, ],
+  'copyright': 'Copyright (C) 2026 Clara Jourdan (Instituto de Fusión Nuclear Guillermo Velarde, Universidad Politécnica de Madrid)',
+}
+
 def beam_hit(beam_row, num_samples, radius, center_target):
     """
     Simulation de tir laser.
@@ -117,7 +127,7 @@ def impact_simulated(num_total_rays, target_radius, target_center, beam_df):
     selected_indices = np.random.choice(len(beam_df), size=num_total_rays, p=probs)
     counts = np.bincount(selected_indices, minlength=len(beam_df))
     
-    impact_list = []
+    impact_list = [] 
     
     # 3. Boucle sur les faisceaux
     for i, n_rays in enumerate(counts):
@@ -178,3 +188,13 @@ def test_energy_conservation():
     assert total_deposited_energy >= 0, "Negative energy detected!"
 
     print(f"\n[Test Passed] Total deposited: {total_deposited_energy:.2f} J / {total_omega_energy:.2f} J")
+
+if __name__ == '__main__':
+    import sys
+    from helpers import utils  # Assure-toi que utils est accessible
+    
+    # Affiche le message de bienvenue du module
+    utils.show_message()
+    
+    # Lance tous les tests commençant par "test_" trouvés dans les globals()
+    sys.exit(utils.run_test(info, globals()))

@@ -13,7 +13,7 @@ info = {
   'copyright': 'Copyright (C) 2026 Clara Jourdan (Instituto de Fusión Nuclear Guillermo Velarde, Universidad Politécnica de Madrid)',
 }
 
-# Liste mise à jour avec l1 et l2 après wavelength
+# List of the required colums for the simulation
 required_columns = [ 
     'id', 'LAT_rad', 'LONG_rad', 'energy', 'wavelength', 
     'l1', 'l2',                       # Tailles de la fenêtre (AJOUTÉ)

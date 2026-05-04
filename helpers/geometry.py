@@ -17,13 +17,6 @@ info = argparse.Namespace(
   copyright = 'Copyright (C) 2026 Clara Jourdan (Instituto de Fusión Nuclear Guillermo Velarde, Universidad Politécnica de Madrid)',
 )
 
-def write_disclaimer(info):
-    if type(info) is dict:
-        return f'# {info["copyright"]} hereby claims all interest in program "{info["name"]}"'
-    elif isinstance(info, argparse.Namespace):
-        return f'# {info.copyright} hereby claims all interest in program "{info.name}"'
-    return '# Copyright (C) 2026 Clara Jourdan' 
-
 #Parameters
 BEAM_RADIUS = 0.14 #meters
 TARGET_RADIUS = 0.001 #meters 
@@ -98,9 +91,6 @@ def generate_omega60_geometry():
         beam_id +=1
     return pd.DataFrame(all_beams)
 
-df_omega= generate_omega60_geometry()
-print(df_omega.head())
-print(len(df_omega))
 
 def compute_focal_distance(defocus_mm=0.0):
     """
