@@ -5,8 +5,7 @@ from scipy.special import sph_harm
 from helpers import geometry
 from helpers import sampler
 from helpers import coord, utils
-from helpers import rwhist, collision, rwbeams
-import sphericalharmonics as sh
+from helpers import rwhist, collision, rwbeams, sphericalharmonics
 import sys
 
 
@@ -151,6 +150,59 @@ def analyze_histogram_B(hist, theta_edges, phi_edges, Lmax=6):
     print_coeffs(coeffs)
 
     return coeffs
+
+# Reconstruction error
+def reconstruct_histogram(coeffs, theta_edges, phi_edges):
+    """
+    Étape B : Reconstruit l'histogramme f* à partir des coefficients flm.
+    f* = sum(flm * Ylm)
+    """
+    # 1. Préparation de la grille identique à l'originale
+    theta_centers = 0.5 * (theta_edges[:-1] + theta_edges[1:])
+    phi_centers   = 0.5 * (phi_edges[:-1] + phi_edges[1:])
+    mt, mp = np.meshgrid(theta_centers, phi_centers, indexing='ij')
+
+    # 2. Somme pondérée des harmoniques
+    hist_star = np.zeros_like(mt, dtype=complex)
+    for (l, m), flm in coeffs.items():
+        Ylm = sph_harm(m, l, mp, mt)
+        hist_star += flm * Ylm
+    
+    # On retourne la partie réelle car l'intensité physique est réelle
+    return hist_star.real
+
+def compute_reconstruction_error(hist_orig, hist_reconstructed):
+    """
+    Étape C : Calcule la carte d'erreur relative point par point.
+    e_ij = sqrt(|1 - f*/f|^2)
+    """
+    # On évite la division par zéro si une case de l'histogramme est vide
+    safe_hist = np.where(hist_orig == 0, np.nan, hist_orig)
+    
+    # Application de la formule du schéma
+    error_map = np.sqrt(np.abs(1 - hist_reconstructed / safe_hist)**2)
+    
+    return error_map
+
+def analyze_model_fidelity(hist, theta_edges, phi_edges, Lmax=6):
+    """Calcule tout le modèle et renvoie les objets sans afficher de texte."""
+    # A. Décomposition
+    coeffs = compute_sph_coeffs_A(hist, theta_edges, phi_edges, Lmax)
+    
+    # B. Reconstruction
+    hist_star = reconstruct_histogram(coeffs, theta_edges, phi_edges)
+    
+    # C. Calcul de l'erreur point par point
+    e_ij = compute_reconstruction_error(hist, hist_star)
+    
+    # D. Calcul des indicateurs demandés par le schéma[cite: 3]
+    metrics = {
+        'mean_error': np.nanmean(e_ij) * 100,
+        'max_error': np.nanmax(e_ij) * 100,
+        'hist_star': hist_star,
+        'error_map': e_ij
+    }
+    return metrics
 
 
 # TESTING

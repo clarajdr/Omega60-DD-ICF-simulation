@@ -72,6 +72,44 @@ def params_testing():
     validate_beams(df)
     return df
 
+def params_testing_lambert():
+    """
+    Génère un faisceau spécifique pour le test de la loi de Lambert.
+    Les rayons seront envoyés parallèlement le long de l'axe X.
+    """
+    data = {
+        'id': ['LambertTestBeam'], 
+        'LAT_rad': [0.0], 
+        'LONG_rad': [0.0],
+        'energy': [1.0],          # On met l'énergie à 1 pour faciliter le test
+        'wavelength': [0.351e-6], # Longueur d'onde standard OMEGA
+        
+        # Fenêtre de 3mm pour bien couvrir la bille de 2mm (0.001 de rayon)
+        'l1': [0.003], 'l2': [0.003], 
+        
+        # Positionnement sur l'axe X, à 5cm du centre
+        'xc': [0.05], 'yc': [0.0], 'zc': [0.0], 
+        
+        # La normale pointe vers l'origine (direction -X)
+        'nx': [-1.0], 'ny': [0.0], 'nz': [0.0], 
+        
+        # Tangentes définissant le plan YZ de la fenêtre
+        't1x': [0.0], 't1y': [1.0], 't1z': [0.0],
+        't2x': [0.0], 't2y': [0.0], 't2z': [1.0],
+        
+        'R': [0.0015], # Rayon de la fenêtre (l1/2)
+        
+        # Le focus est mis à l'origine, mais on l'ignorera pour forcer le parallélisme
+        'fx': [0.0], 'fy': [0.0], 'fz': [0.0] 
+    }
+    
+    df = pd.DataFrame(data)
+    
+    # On utilise ta fonction de validation pour être sûr que tout y est[cite: 2]
+    validate_beams(df) 
+    
+    return df
+
 # --- Testing ---
 
 def test_beam_io():

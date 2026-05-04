@@ -127,7 +127,7 @@ def compute_histogram(hits, sectors):
     # On multiplie l'énergie par le cosinus d'incidence (Loi de Lambert)
     theta = hits['lat_rad'].values
     phi = hits['long_rad'].values
-    weights = (hits['energy_weight'] * np.abs(hits['cs'])).values
+    weights = (hits['energy_weight']).values
 
     # 2. Histogramme 2D (Calcul brut par secteur)
     # On utilise les 'edges' (bords) définis dans ton objet sectors
