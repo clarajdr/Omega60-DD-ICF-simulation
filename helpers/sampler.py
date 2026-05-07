@@ -129,7 +129,7 @@ def beam_sample(beam, num_samples):
     # loc=0.0: Centered on the beam axis.
     # scale=0.5: Standard deviation (concentrates ~95% of energy within the central area).
     # IMPORTANT: The lambda function generates numerical data using .rvs to ensure compatibility.
-    dist_gauss = lambda n: sp.stats.norm(loc=0.0, scale=0.5).rvs(size=(n, 2))
+    dist_gauss = lambda n: sp.stats.norm(loc=0.0, scale=0.15).rvs(size=(n, 2))
     
     # Map the distribution to the 3D window coordinates
     return sample_window(t1, t2, l1=l1, l2=l2, center=center, num_points=num_samples, dist=dist_gauss)

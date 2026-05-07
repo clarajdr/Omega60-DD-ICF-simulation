@@ -72,7 +72,7 @@ def params_testing():
     validate_beams(df)
     return df
 
-def params_testing_lambert():
+def cosine_test():
     """
     Génère un faisceau spécifique pour le test de la loi de Lambert.
     Les rayons seront envoyés parallèlement le long de l'axe X.

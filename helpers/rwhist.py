@@ -127,7 +127,7 @@ def compute_histogram(hits, sectors):
     # On multiplie l'énergie par le cosinus d'incidence (Loi de Lambert)
     theta = hits['lat_rad'].values
     phi = hits['long_rad'].values
-    weights = (hits['energy_weight']).values
+    weights = (hits['energy_weight'] ).values
 
     # 2. Histogramme 2D (Calcul brut par secteur)
     # On utilise les 'edges' (bords) définis dans ton objet sectors
@@ -139,7 +139,7 @@ def compute_histogram(hits, sectors):
     )
 
     # 3. Calcul de la densité (Energie par unité de surface)
-    # ATTENTION : on utilise sectors.areas (avec un 's') qui est le tableau 2D
+    # ATTENTION : on utilise sectors.areas qui est le tableau 2D
     # calculé automatiquement par le module rwhist
     hs_density = hs_raw / sectors.areas
 

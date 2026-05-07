@@ -218,7 +218,7 @@ def test_sph_constant():
     # f(theta, phi) = 1 partout
     hist = np.ones((n_theta, n_phi))
     
-    coeffs = sh.compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=2)
+    coeffs = compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=2)
     
     # Pour une fonction constante, seul le mode (0,0) doit être non nul
     a00 = abs(coeffs[(0, 0)])
@@ -237,23 +237,34 @@ def test_sph_parity_zonal():
     p_centers = 0.5 * (p_edges[:-1] + p_edges[1:])
     mt, mp = np.meshgrid(t_centers, p_centers, indexing='ij')
     
-    # f(theta, phi) = cos(theta)^2 (indépendant de phi, donc zonal)
+    # f(theta, phi) = cos(theta)^2
     hist = np.cos(mt)**2
     
-    coeffs = sh.compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=3)
+    # On monte jusqu'à Lmax=3 pour bien voir la parité
+    coeffs = compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=3)
     
-    # 1. Indépendant de phi => m=0 uniquement
     for (l, m), val in coeffs.items():
+        magnitude = abs(val)
+        
+        # 1. Test de zonalité : si m != 0, le coeff doit être nul
         if m != 0:
-            assert np.isclose(abs(val), 0, atol=1e-10), f"Error: m={m} should be 0 for zonal function"
+            assert np.isclose(magnitude, 0, atol=1e-10), \
+                f"Error: m={m} (l={l}) should be 0 for zonal function"
             
-    # 2. Fonction paire (cos^2) => l doit être pair (l=0, 2)
-    a10 = abs(coeffs[(1, 0)])
-    a30 = abs(coeffs[(3, 0)])
-    assert np.isclose(a10, 0, atol=1e-10), "Error: l=1 should be 0 for even function"
-    assert np.isclose(a30, 0, atol=1e-10), "Error: l=3 should be 0 for even function"
+        # 2. Test de parité : si l est impair (1, 3), le coeff doit être nul
+        if l % 2 != 0:
+            assert np.isclose(magnitude, 0, atol=1e-10), \
+                f"Error: degree l={l} is odd, all its m-components should be 0"
     
-    print("Test 2 passed: cos(theta)^2 is correctly identified as zonal and even.")
+    # Vérification spécifique des composantes m pour l=1 et l=3 (incluant m négatifs)
+    # C'est ce que tu voulais vérifier avec l=-1 ou l=-3 (en parlant de m)
+    for m_val in [-1, 1]:
+        assert np.isclose(abs(coeffs[(1, m_val)]), 0, atol=1e-10), f"Error: (l=1, m={m_val}) should be 0"
+    
+    for m_val in [-3, -2, -1, 1, 2, 3]:
+        assert np.isclose(abs(coeffs[(3, m_val)]), 0, atol=1e-10), f"Error: (l=3, m={m_val}) should be 0"
+
+    print("Test 2 passed: cos(theta)^2 is perfectly zonal (m=0) and even (l=0, 2).")
 
 def test_sph_linear_combination():
     print("# Running test 3: Linear combination a00*Y00 + a10*Y10")
@@ -269,7 +280,7 @@ def test_sph_linear_combination():
     y10 = sph_harm(0, 1, mp, mt).real
     hist = 1.0 * y00 + 0.5 * y10
     
-    coeffs = sh.compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=1)
+    coeffs = compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=1)
     
     # On vérifie que l'on retrouve les poids (normalisés par l'élément de surface)
     # Note: flm dans le code est l'intégrale brute sum(hist * conj(Ylm) * S)
@@ -285,7 +296,7 @@ def test_sph_real_property():
     # Génération d'un signal réel aléatoire
     hist = np.random.rand(n_t, n_p) 
     
-    coeffs = sh.compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=2)
+    coeffs = compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax=2)
     
     # Vérification de la propriété pour l=2, m=1
     l, m = 2, 1
@@ -301,3 +312,53 @@ if __name__ == '__main__':
   sys.exit( utils.run_test( info, globals(), ), )
 else:
   print( utils.write_disclaimer(info), )
+
+def test_sph_delta_single_mode():
+    """
+    Test 5 : Delta Test (Single Mode)
+    On définit f(theta, phi) = Y_{l0, m0}(theta, phi).
+    L'algorithme doit extraire c_{l0, m0} = 1.0 et 0.0 ailleurs.
+    """
+    print("# Running test 5: Delta Test (Single Mode Y_{2,1})")
+    
+    # Résolution de la grille
+    n_theta, n_phi = 60, 60
+    t_edges = np.linspace(0, np.pi, n_theta + 1)
+    p_edges = np.linspace(0, 2*np.pi, n_phi + 1)
+    
+    t_centers = 0.5 * (t_edges[:-1] + t_edges[1:])
+    p_centers = 0.5 * (p_edges[:-1] + p_edges[1:])
+    mt, mp = np.meshgrid(t_centers, p_centers, indexing='ij')
+
+    # 1. Définition du mode cible (l=2, m=1)
+    l0, m0 = 2, 1
+    
+    # 2. Génération du signal f = Y_{2,1}
+    # Note: sph_harm utilise l'ordre (m, l, phi, theta)
+    hist = sph_harm(m0, l0, mp, mt)
+
+    # 3. Calcul des coefficients via la Méthode A
+    Lmax = 3
+    coeffs = compute_sph_coeffs_A(hist, t_edges, p_edges, Lmax)
+
+    # 4. Validation
+    target_key = (l0, m0)
+    
+    for (l, m), val in coeffs.items():
+        magnitude = abs(val)
+        if (l, m) == target_key:
+            # Le mode cible doit valoir 1.0
+            assert np.isclose(magnitude, 1.0, atol=1e-3), \
+                f"Error: Mode ({l},{m}) should be 1.0, found {magnitude:.5f}"
+        else:
+            # Tous les autres modes doivent être nuls
+            assert np.isclose(magnitude, 0.0, atol=1e-3), \
+                f"Error: Mode ({l},{m}) should be 0.0, found {magnitude:.5e}"
+
+    print(f"Test 5 passed: Only mode ({l0},{m0}) is 1.0, others are ~0.")
+
+if __name__ == '__main__':
+    utils.show_message()
+    sys.exit(utils.run_test(info, globals()))
+else:
+    print(utils.write_disclaimer(info))
