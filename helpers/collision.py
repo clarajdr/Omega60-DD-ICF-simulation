@@ -32,7 +32,7 @@ def beam_hit(beam_row, num_samples, radius, center_target):
     focus = np.array([beam_row['fx'], beam_row['fy'], beam_row['fz']])
     
     # 2. Échantillonnage sur le port laser (Profil Gaussien)
-    dist_gauss = lambda n: sp.stats.norm(loc=0.0, scale=0.15).rvs(size=(n, 2))
+    dist_gauss = lambda n: sp.stats.norm(loc=0.0, scale=0.5).rvs(size=(n, 2))
     ray_origins = sampler.sample_window(t1, t2, l1=beam_row['l1'], l2=beam_row['l2'], 
                                 center=center, num_points=num_samples, dist=dist_gauss)
     
