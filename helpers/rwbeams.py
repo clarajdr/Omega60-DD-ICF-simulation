@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import sys
-from helpers import utils
+from helpers import utilsclara
 
 info = {
   'name': 'beams', # Corrigé de 'hist' à 'beams'
@@ -128,9 +128,9 @@ def test_beam_io():
     return
 
 if __name__ == '__main__':
-    utils.show_message()
-    sys.exit(utils.run_test(info, globals()))
+    utilsclara.show_message()
+    sys.exit(utilsclara.run_test(info, globals()))
 else:
-    print(utils.write_disclaimer(info))
+    print(utilsclara.write_disclaimer(info))
 
 

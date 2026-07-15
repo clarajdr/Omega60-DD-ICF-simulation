@@ -9,9 +9,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 try:
-  from . import utils
+  from . import utilsclara
 except ImportError:
-  import utils
+  import helpers.utilsclara as utilsclara
 
 info = {
   'name': 'hist',
@@ -253,8 +253,8 @@ def test_histogram_io():
 
 # run this script
 if __name__ == '__main__':
-  utils.show_message()
-  sys.exit( utils.run_test( info, globals(), ), )
+  utilsclara.show_message()
+  sys.exit( utilsclara.run_test( info, globals(), ), )
 else:
-  print( utils.write_disclaimer(info), )
+  print( utilsclara.write_disclaimer(info), )
   

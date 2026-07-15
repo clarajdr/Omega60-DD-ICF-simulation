@@ -191,10 +191,10 @@ def test_energy_conservation():
 
 if __name__ == '__main__':
     import sys
-    from helpers import utils  # Assure-toi que utils est accessible
+    from helpers import utilsclara  # Assure-toi que utils est accessible
     
     # Affiche le message de bienvenue du module
-    utils.show_message()
+    utilsclara.show_message()
     
     # Lance tous les tests commençant par "test_" trouvés dans les globals()
-    sys.exit(utils.run_test(info, globals()))
+    sys.exit(utilsclara.run_test(info, globals()))

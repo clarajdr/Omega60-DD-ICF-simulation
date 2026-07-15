@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd 
 import argparse
 from scipy.special import sph_harm
-from helpers import geometry
+from helpers import geometry, utilsclara
 from helpers import sampler
-from helpers import coord, utils
+from helpers import coord
 from helpers import rwhist, collision, rwbeams, sphericalharmonics
 import sys
 
@@ -308,10 +308,10 @@ def test_sph_real_property():
     print("Test 4 passed: Real function symmetry property verified.")
 
 if __name__ == '__main__':
-  utils.show_message()
-  sys.exit( utils.run_test( info, globals(), ), )
+  utilsclara.show_message()
+  sys.exit( utilsclara.run_test( info, globals(), ), )
 else:
-  print( utils.write_disclaimer(info), )
+  print( utilsclara.write_disclaimer(info), )
 
 def test_sph_delta_single_mode():
     """
@@ -358,7 +358,7 @@ def test_sph_delta_single_mode():
     print(f"Test 5 passed: Only mode ({l0},{m0}) is 1.0, others are ~0.")
 
 if __name__ == '__main__':
-    utils.show_message()
-    sys.exit(utils.run_test(info, globals()))
+    utilsclara.show_message()
+    sys.exit(utilsclara.run_test(info, globals()))
 else:
-    print(utils.write_disclaimer(info))
+    print(utilsclara.write_disclaimer(info))
